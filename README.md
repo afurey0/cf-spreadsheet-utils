@@ -1,9 +1,25 @@
 # cf-spreadsheet-utils
 ColdFusion components for working with Excel spreadsheets
 
-## BigSpreadsheet
+## Excel CFC
 
-A CFC wrapper for POI's [SXSSFWorkbook](https://poi.apache.org/apidocs/dev/org/apache/poi/xssf/streaming/SXSSFWorkbook.html) that provides an interface that is somewhat similar to ColdFusion's built-in spreadsheet functions. This component is only for writing spreadsheets. By leveraging SXSSFWorkbook, it can write spreadsheets in a very memory-efficient manner. This is excellent for generating very large spreadsheets. Note that you must build your spreadsheet from top to bottom.
+This component contains functions for working with Excel spreadsheets. It includes convenience functions for generating CSV and XLSX files from query result sets as well as streaming them to the browser. Use the `streamQueryAsSpreadsheet` method or the `streamQueryAsText` method for the best performance for spreadsheet downloads. 
+
+### Example
+
+```cfml
+<cfscript>
+  variables.employees = queryExecute(...);
+  variables.excel = new cfc.Excel();
+  variables.excel.streamQueryAsSpreadsheet(variables.employees, "export.xlsx", "My Sheet");
+</cfscript>
+```
+
+## BigSpreadsheet CFC
+
+This is a CFC wrapper for POI's [SXSSFWorkbook](https://poi.apache.org/apidocs/dev/org/apache/poi/xssf/streaming/SXSSFWorkbook.html) that provides an interface that is somewhat similar to ColdFusion's built-in spreadsheet functions. This component is only for writing spreadsheets. By leveraging SXSSFWorkbook, it can write spreadsheets in a very memory-efficient manner. This is excellent for generating very large spreadsheets. Note that you must build your spreadsheet from top to bottom.
+
+### Example
 
 ```cfml
 <cfscript>
