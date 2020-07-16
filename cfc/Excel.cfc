@@ -6,7 +6,7 @@
  * @author Alex Furey
  * @version 1.1.3
  * @since 2020-07-15
- * @example {@code new cfc.Excel().streamQueryAsSpreadsheet(qRecords);} --->}
+ * @example {@code new cfc.Excel().streamQueryAsSpreadsheet(qRecords);}
  */
 component {
 
