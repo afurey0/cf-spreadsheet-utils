@@ -18,7 +18,9 @@ This component contains functions for working with Excel spreadsheets. It includ
 
 ## BigSpreadsheet CFC
 
-This is a CFC wrapper for POI's [SXSSFWorkbook](https://poi.apache.org/apidocs/dev/org/apache/poi/xssf/streaming/SXSSFWorkbook.html) that provides an interface that is somewhat similar to ColdFusion's built-in spreadsheet functions. This component is only for *writing* spreadsheets. By leveraging SXSSFWorkbook, it can write spreadsheets with far better memory efficiency than you'd get with ColdFusion's normal spreadsheet functions. It works by streaming the contents of the spreadsheet to the browser as it is being written, instead of building the entire spreadsheet in memory as ColdFusion normally does. This is excellent for generating very large spreadsheets on the fly. If your data comes from a query, you can save development time by using the convenience function `streamQueryAsSpreadsheet` found in the Excel CFC.
+This is a CFC wrapper for POI's [SXSSFWorkbook](https://poi.apache.org/apidocs/dev/org/apache/poi/xssf/streaming/SXSSFWorkbook.html) that provides an interface that is somewhat similar to ColdFusion's built-in spreadsheet functions. This component is only for *writing* spreadsheets. By leveraging SXSSFWorkbook, it can write spreadsheets with far better memory efficiency than you'd get with ColdFusion's normal spreadsheet functions. It works by streaming the contents of the spreadsheet to the browser as it is being written, instead of building the entire spreadsheet in memory as ColdFusion normally does. This is excellent for generating very large spreadsheets on the fly.
+
+If your data comes from a query, you can use this memory efficient spreadsheet generator easily by using the convenience function `streamQueryAsSpreadsheet` found in the Excel CFC. This function uses BigSpreadsheet, but it handles all the details of reading the query's columns and rows.
 
 ### Example
 
