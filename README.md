@@ -7,12 +7,14 @@ This component contains functions for working with Excel spreadsheets. It includ
 
 ### Example
 
+In this example, we use the convenience function, `streamQueryAsSpreadsheet`, to generate a spreadsheet from a query and stream it to the browser on the fly.
+
 ```cfml
 <cfscript>
-  variables.employees = queryExecute("SELECT id, name, phone, email FROM employees");
-  variables.excel = new cfc.Excel();
-  variables.excel.streamQueryAsSpreadsheet(variables.employees, "export.xlsx", "My Sheet");
-  abort;
+  variables.employees = queryExecute("SELECT id, name, hire_date FROM employees"); // retrieve the query result set
+  variables.excel = new cfc.Excel(); // instantiate an Excel CFC
+  variables.excel.streamQueryAsSpreadsheet(variables.employees, "export.xlsx", "My Sheet"); // call the convenience function; pass in the spreadsheet, desired file name, and sheet name
+  abort; // recommend calling abort here to make sure no other output gets streamed to the browser accidentally
 </cfscript>
 ```
 
@@ -24,9 +26,11 @@ If your data comes from a query, you can use this memory efficient spreadsheet g
 
 ### Example
 
+In this example, we execute a query to get a list of employees. Then we generate a spreadsheet and write it to disk.
+
 ```cfml
 <cfscript>
-  variables.employees = queryExecute(...);
+  variables.employees = queryExecute("SELECT id, name, hire_date FROM employees");
   variables.bss = new cfc.BigSpreadsheet(); // initialize the BigSpreadsheet
   try {
     variables.bss.createStyle("header", { // register a style named "header" which makes the text bold
@@ -38,15 +42,15 @@ If your data comes from a query, you can use this memory efficient spreadsheet g
     variables.bss.createSheet("My Sheet"); // add a sheet to the workbook
     variables.bss.formatColumn("date", 3); // apply the style named "date" to column 3
     variables.bss.createRow(); // start a new row
-    variables.bss.setCellValue("First Name"); // set the value of the first cell in the row
-    variables.bss.setCellValue("Last Name"); // set the value of the next cell in the row
+    variables.bss.setCellValue("ID"); // set the value of the first cell in the row
+    variables.bss.setCellValue("Name"); // set the value of the next cell in the row
     variables.bss.setCellValue("Hire Date"); // etc
     variables.bss.formatRow("header"); // apply the style named "header" to the current row
     for (variables.employee in variables.employees) { // loop over the dataset, starting a new row for each record
       variables.bss.createRow();
-      variables.bss.setCellValue(variables.employee.firstname);
-      variables.bss.setCellValue(variables.employee.lastname);
-      variables.bss.setCellValue(variables.employee.hiredate);
+      variables.bss.setCellValue(variables.employee.id);
+      variables.bss.setCellValue(variables.employee.name);
+      variables.bss.setCellValue(variables.employee.hire_date);
     }
     variables.write(expandPath("/myfolder/myfile.xlsx")); // write the workbook to disk
   } finally {
