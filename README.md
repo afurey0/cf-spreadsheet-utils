@@ -9,15 +9,16 @@ This component contains functions for working with Excel spreadsheets. It includ
 
 ```cfml
 <cfscript>
-  variables.employees = queryExecute(...);
+  variables.employees = queryExecute("SELECT id, name, phone, email FROM employees");
   variables.excel = new cfc.Excel();
   variables.excel.streamQueryAsSpreadsheet(variables.employees, "export.xlsx", "My Sheet");
+  abort;
 </cfscript>
 ```
 
 ## BigSpreadsheet CFC
 
-This is a CFC wrapper for POI's [SXSSFWorkbook](https://poi.apache.org/apidocs/dev/org/apache/poi/xssf/streaming/SXSSFWorkbook.html) that provides an interface that is somewhat similar to ColdFusion's built-in spreadsheet functions. This component is only for writing spreadsheets. By leveraging SXSSFWorkbook, it can write spreadsheets in a very memory-efficient manner. This is excellent for generating very large spreadsheets. Note that you must build your spreadsheet from top to bottom.
+This is a CFC wrapper for POI's [SXSSFWorkbook](https://poi.apache.org/apidocs/dev/org/apache/poi/xssf/streaming/SXSSFWorkbook.html) that provides an interface that is somewhat similar to ColdFusion's built-in spreadsheet functions. This component is only for *writing* spreadsheets. By leveraging SXSSFWorkbook, it can write spreadsheets with far better memory efficiency than you'd get with ColdFusion's normal spreadsheet functions. It works by streaming the contents of the spreadsheet to the browser as it is being written, instead of building the entire spreadsheet in memory as ColdFusion normally does. This is excellent for generating very large spreadsheets on the fly. If your data comes from a query, you can save development time by using the convenience function `streamQueryAsSpreadsheet` found in the Excel CFC.
 
 ### Example
 
@@ -49,5 +50,6 @@ This is a CFC wrapper for POI's [SXSSFWorkbook](https://poi.apache.org/apidocs/d
   } finally {
     variables.bss.dispose(); // always dispose of the BigSpreadsheet using a try-finally block
   }
+  abort;
 </cfscript>
 ```
