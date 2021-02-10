@@ -286,6 +286,7 @@ component {
 					local.spreadsheet.setColumnWidth(local.c, min(max(max(local.info.columnWidths[local.c], len(local.sheetData.getColumnName(local.c))) + 2, 10), 30));
 				}
 			}
+			local.spreadsheet.setActiveSheetNumber(1);
 			local.spreadsheet.stream(arguments.fileName);
 		} finally {
 			local.spreadsheet.dispose();
