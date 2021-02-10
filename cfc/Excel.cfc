@@ -4,8 +4,8 @@
  * Use {@link #streamQueryAsText} (CSV) or {@link #streamQueryAsSpreadsheet} (XLSX) for the best performance.
  * Avoid using {@link #queryToSpreadsheet} (and {@link #queryToText}, to a lesser extent) for large result sets, as it can use a lot of memory.
  * @author Alex Furey
- * @version 1.1.3
- * @since 2020-07-15
+ * @version 1.1.4
+ * @since 2021-02-10
  * @example {@code new cfc.Excel().streamQueryAsSpreadsheet(qRecords);}
  */
 component {
@@ -207,12 +207,20 @@ component {
 	 * No formatting is applied to formula cells, unless it starts with {@code =HYPERLINK} in which case the text is formatted to be blue and underlined.
 	 * This function changes the Content Disposition of the reponse and sets the page content using {@code cfcontent}.
 	 * Typically, {@code abort} should be used immediately after calling this function or the function call should be at the end of the script.
-	 * @data A query result set.
-	 * @sheetName The name of the sheet.
+	 * To generate a workbook with multiple sheets (i.e. multiple query result sets each displayed on a separate sheet), pass arrays to the data and sheetName parameters.
+	 * @data A query result set. To generate a spreadsheet with multiple tabs, pass in an array of query result sets.
 	 * @fileName The name to suggest for the file.
+	 * @sheetName The name of the sheet. To generate a spreadsheet with multiple tabs, pass in an array of names.
 	 * @template Path to an XLSX file to use as a template.
 	 */
-	public void function streamQueryAsSpreadsheet(required query data, string fileName = "export.xlsx", string sheetName = "Export", any template) {
+	public void function streamQueryAsSpreadsheet(required any data, string fileName = "export.xlsx", any sheetName = "Export", any template) {
+		if (not isArray(arguments.data)) {
+			arguments.data = [arguments.data];
+		}
+		if (not isArray(arguments.sheetName)) {
+			arguments.sheetName = [arguments.sheetName];
+		}
+		local.numberOfSheets = max(arrayLen(arguments.data), arrayLen(arguments.sheetName));
 		if (structKeyExists(arguments, "template")) {
 			local.spreadsheet = new cfc.BigSpreadsheet(arguments.template);
 		} else {
@@ -237,43 +245,46 @@ component {
 			local.spreadsheet.createStyle("text", {
 				dataformat: "@"
 			});
-			local.spreadsheet.createSheet(arguments.sheetName);
-			local.spreadsheet.createRow();
-			local.info = getQueryInfo(arguments.data);
-			for (local.c = 1; local.c lte local.info.columnsCount; local.c++) {
-				local.spreadsheet.setCellValue(local.info.columnLabels[local.c]);
-			}
-			local.spreadsheet.formatRow("header");
-			local.spreadsheet.addFreezePane(0, 1);
-			local.spreadsheet.addAutoFilter(1, 1, 1, local.info.columnsCount);
-			for (local.r = 1; local.r lte arguments.data.recordCount; local.r++) {
+			for (local.sheetIndex = 1; local.sheetIndex lte local.numberOfSheets; local.sheetIndex++) {
+				local.sheetData = arguments.data[local.sheetIndex]?:queryNew("");
+				local.spreadsheet.createSheet(arguments.sheetName[local.sheetIndex]?:"Export");
 				local.spreadsheet.createRow();
+				local.info = getQueryInfo(local.sheetData);
 				for (local.c = 1; local.c lte local.info.columnsCount; local.c++) {
-					local.value = arguments.data[arguments.data.getColumnName(local.c)][local.r];
-					if (local.info.columnTypes[local.c] eq "date") {
-						local.valid = isValid("date", local.value);
-						local.spreadsheet.setCellValue(local.valid ? dateToNumber(local.value) : local.value);
-						if (local.valid) {
-							local.spreadsheet.formatCell("date");
+					local.spreadsheet.setCellValue(local.info.columnLabels[local.c]);
+				}
+				local.spreadsheet.formatRow("header");
+				local.spreadsheet.addFreezePane(0, 1);
+				local.spreadsheet.addAutoFilter(1, 1, 1, local.info.columnsCount);
+				for (local.r = 1; local.r lte local.sheetData.recordCount; local.r++) {
+					local.spreadsheet.createRow();
+					for (local.c = 1; local.c lte local.info.columnsCount; local.c++) {
+						local.value = local.sheetData[local.sheetData.getColumnName(local.c)][local.r];
+						if (local.info.columnTypes[local.c] eq "date") {
+							local.valid = isValid("date", local.value);
+							local.spreadsheet.setCellValue(local.valid ? dateToNumber(local.value) : local.value);
+							if (local.valid) {
+								local.spreadsheet.formatCell("date");
+							}
+						} else if (local.info.columnTypes[local.c] eq "numeric") {
+							local.spreadsheet.setCellValue(local.value);
+							if (isNumeric(local.value)) {
+								local.spreadsheet.formatCell("numeric");
+							}
+						} else if (left(local.value, 1) eq "=") {
+							local.spreadsheet.setCellFormula(right(local.value, len(local.value) - 1));
+							if (mid(local.value, 2, 9) eq "HYPERLINK") {
+								local.spreadsheet.formatCell("hyperlink");
+							}
+						} else {
+							local.spreadsheet.setCellValue(local.value);
+							local.spreadsheet.formatCell("text");
 						}
-					} else if (local.info.columnTypes[local.c] eq "numeric") {
-						local.spreadsheet.setCellValue(local.value);
-						if (isNumeric(local.value)) {
-							local.spreadsheet.formatCell("numeric");
-						}
-					} else if (left(local.value, 1) eq "=") {
-						local.spreadsheet.setCellFormula(right(local.value, len(local.value) - 1));
-						if (mid(local.value, 2, 9) eq "HYPERLINK") {
-							local.spreadsheet.formatCell("hyperlink");
-						}
-					} else {
-						local.spreadsheet.setCellValue(local.value);
-						local.spreadsheet.formatCell("text");
 					}
 				}
-			}
-			for (local.c = 1; local.c lte local.info.columnsCount; local.c++) {
-				local.spreadsheet.setColumnWidth(local.c, min(max(max(local.info.columnWidths[local.c], len(arguments.data.getColumnName(local.c))) + 2, 10), 30));
+				for (local.c = 1; local.c lte local.info.columnsCount; local.c++) {
+					local.spreadsheet.setColumnWidth(local.c, min(max(max(local.info.columnWidths[local.c], len(local.sheetData.getColumnName(local.c))) + 2, 10), 30));
+				}
 			}
 			local.spreadsheet.stream(arguments.fileName);
 		} finally {
